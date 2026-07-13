@@ -27,11 +27,12 @@ function render(state) {
   $('sessions').innerHTML = sessions.length
     ? sessions.map((s) => `
         <div class="session-group">
-          <div class="session ${s.state}">
+          <div class="session ${s.state}" data-cwd="${esc(s.cwd || '')}" title="Click to jump to this session's window">
             <span class="dot"></span>
-            <span class="proj" title="${esc(s.cwd || '')}">${esc(s.project)}</span>
+            <span class="proj">${esc(s.project)}</span>
             <span class="meta">${ago(s.idleMs)} ago</span>
             <span class="statechip">${s.state === 'waiting' ? (s.toolStall ? 'NEEDS OK?' : 'WAITING') : 'WORKING'}</span>
+            <span class="jump">↗</span>
           </div>
           ${(s.agents || []).map((a) => `
             <div class="agent ${a.state}">
@@ -88,11 +89,22 @@ function render(state) {
       </div>`).join('');
 }
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   const hatch = e.target.closest('[data-hatch]');
   if (hatch && !hatch.disabled) window.pet.send('hatch-egg', hatch.dataset.hatch);
   const active = e.target.closest('[data-active]');
   if (active) window.pet.send('set-active-pet', active.dataset.active);
+
+  const session = e.target.closest('.session[data-cwd]');
+  if (session && session.dataset.cwd) {
+    session.classList.add('jumping');
+    const res = await window.pet.focusSession(session.dataset.cwd);
+    session.classList.remove('jumping');
+    if (!res || !res.ok) {
+      session.classList.add('jump-fail');
+      setTimeout(() => session.classList.remove('jump-fail'), 900);
+    }
+  }
 });
 
 $('btn-quit').addEventListener('click', () => window.pet.send('quit'));

@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('pet', {
   send(channel, payload) {
     if (SEND_CHANNELS.has(channel)) ipcRenderer.send(channel, payload);
   },
+  focusSession(cwd) {
+    return ipcRenderer.invoke('focus-session', cwd);
+  },
   on(channel, cb) {
     if (ON_CHANNELS.has(channel)) ipcRenderer.on(channel, (_e, data) => cb(data));
   },

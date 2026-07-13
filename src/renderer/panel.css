@@ -87,6 +87,19 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.session:hover { background: #1a3524; }
+.session:active { transform: scale(0.99); }
+.session .jump { color: var(--ink-dim); font-size: 13px; flex: none; opacity: 0; transition: opacity 0.15s; }
+.session:hover .jump { opacity: 1; color: var(--accent); }
+.session.jumping { opacity: 0.6; }
+.session.jump-fail { animation: shake 0.35s; border-color: var(--alert); }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 .session.waiting { border-color: var(--alert); box-shadow: 0 0 10px rgba(255, 138, 92, 0.18); }
 .session .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }

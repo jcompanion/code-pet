@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage } = require('electron');
 const path = require('path');
 const { Store } = require('./store');
+const { focusSession } = require('./focus');
 const { SessionMonitor } = require('./sessions');
 const { Game } = require('./game');
 
@@ -198,6 +199,14 @@ ipcMain.on('hatch-egg', (_e, eggId) => {
   if (egg) game.hatch(egg.id);
 });
 ipcMain.on('set-active-pet', (_e, petId) => game.setActive(petId));
+ipcMain.handle('focus-session', async (_e, cwd) => {
+  try {
+    return await focusSession(cwd);
+  } catch (err) {
+    console.error('[focus]', err.message);
+    return { ok: false };
+  }
+});
 ipcMain.on('quit', () => { app.isQuitting = true; app.quit(); });
 
 // Manual window dragging: the renderer reports grab offset, we follow the cursor.

@@ -55,8 +55,9 @@ This repo doubles as a Claude Code plugin marketplace:
 /plugin install code-pet@code-pet
 ```
 
-Then in any session, run **`/code-pet:pet`** to launch (it installs deps on
-first run and starts the app detached).
+Then in any session, run **`/code-pet:pet`** to launch. On Apple Silicon it
+downloads a prebuilt `Code Pet.app` from this repo's GitHub Releases (~97 MB,
+no npm needed); elsewhere it falls back to `npm install` + `npm start`.
 
 For local use without GitHub: `claude --plugin-dir /path/to/code-pet` and run
 `/code-pet:pet`.

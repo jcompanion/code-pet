@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { EventEmitter } = require('events');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+const run = promisify(execFile);
 
 // A session is considered "live" if its transcript changed within this window.
 const ACTIVE_MS = 60 * 60 * 1000;
@@ -19,6 +22,9 @@ const WAIT_AFTER_USER_MS = 3 * 60 * 1000;
 const AGENT_ACTIVE_MS = 5 * 60 * 1000;
 // Keep finished agents visible in the dashboard for a little while.
 const AGENT_SHOW_DONE_MS = 15 * 60 * 1000;
+// A session whose claude process has exited gets this long before it is
+// dropped from the dashboard (covers process-table races and quick restarts).
+const DEAD_GRACE_MS = 90 * 1000;
 
 /**
  * Watches ~/.claude/projects/**\/*.jsonl and models every local Claude Code
@@ -37,10 +43,13 @@ class SessionMonitor extends EventEmitter {
     this.lastSnapshotJson = '';
     this.watcher = null;
     this.timer = null;
+    this.liveCwds = new Map(); // cwd -> number of running claude processes
+    this.liveCwdsReady = false;
   }
 
   start() {
     this.scan(true);
+    this.refreshLiveCwds().then(() => this.evaluate());
     try {
       this.watcher = fs.watch(this.root, { recursive: true }, (_ev, fname) => {
         if (!fname || !fname.endsWith('.jsonl')) return;
@@ -51,11 +60,68 @@ class SessionMonitor extends EventEmitter {
     } catch (err) {
       console.error('[sessions] fs.watch failed, relying on polling:', err.message);
     }
+    let tick = 0;
     this.timer = setInterval(() => {
       this.scan(false);
+      if (tick++ % 2 === 0) this.refreshLiveCwds().then(() => this.evaluate());
       this.evaluate();
     }, 5000);
     this.evaluate();
+  }
+
+  // Which project dirs currently have a live `claude` CLI process (and how
+  // many)? Used to drop sessions from the dashboard once they're closed.
+  async refreshLiveCwds() {
+    try {
+      const { stdout } = await run('ps', ['-axo', 'pid=,command=']);
+      const pids = [];
+      for (const line of stdout.split('\n')) {
+        const m = line.match(/^\s*(\d+)\s+(.*)$/);
+        if (!m) continue;
+        const cmd = m[2];
+        if (/Electron|Code Pet|Helper/.test(cmd)) continue;
+        if (/(^|\/)claude( |$)/.test(cmd) || /claude\/cli\.js|\.claude\/local/.test(cmd)) {
+          pids.push(m[1]);
+        }
+      }
+      const counts = new Map();
+      for (const pid of pids) {
+        try {
+          const { stdout: ls } = await run('lsof', ['-a', '-p', pid, '-d', 'cwd', '-Fn']);
+          const line = ls.split('\n').find((l) => l.startsWith('n'));
+          if (line) {
+            const cwd = line.slice(1);
+            counts.set(cwd, (counts.get(cwd) || 0) + 1);
+          }
+        } catch {}
+      }
+      this.liveCwds = counts;
+      this.liveCwdsReady = true;
+    } catch (err) {
+      // ps unavailable: fall back to the time-window behavior only.
+    }
+  }
+
+  // Filter out sessions whose hosting process is gone. Each live claude
+  // process in a cwd "claims" the most recently active session file there;
+  // anything beyond that count is a closed conversation.
+  dropDeadSessions(snap, now) {
+    if (!this.liveCwdsReady) return snap;
+    const byCwd = new Map();
+    for (const s of snap) {
+      if (!s.cwd) continue;
+      if (!byCwd.has(s.cwd)) byCwd.set(s.cwd, []);
+      byCwd.get(s.cwd).push(s);
+    }
+    const dead = new Set();
+    for (const [cwd, list] of byCwd) {
+      const slots = this.liveCwds.get(cwd) || 0;
+      list.sort((a, b) => b.mtimeMs - a.mtimeMs);
+      for (const s of list.slice(slots)) {
+        if (now - s.mtimeMs > DEAD_GRACE_MS) dead.add(s.key);
+      }
+    }
+    return snap.filter((s) => !dead.has(s.key));
   }
 
   stop() {
@@ -306,7 +372,7 @@ class SessionMonitor extends EventEmitter {
 
   evaluate() {
     const now = Date.now();
-    const snap = [];
+    let snap = [];
     for (const rec of this.files.values()) {
       // Only pay the readdir for sessions that could plausibly be live.
       if (now - rec.mtimeMs < ACTIVE_MS * 1.5 || rec.agents.size) this.scanAgents(rec);
@@ -335,6 +401,7 @@ class SessionMonitor extends EventEmitter {
         agentsRunning: running,
       });
     }
+    snap = this.dropDeadSessions(snap, now);
     snap.sort((a, b) =>
       a.state === b.state ? b.mtimeMs - a.mtimeMs : a.state === 'waiting' ? -1 : 1
     );

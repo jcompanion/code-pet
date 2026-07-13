@@ -1,0 +1,14 @@
+{
+  "name": "code-pet",
+  "productName": "Code Pet",
+  "version": "0.1.0",
+  "description": "A hatchable desktop pet that watches your local Claude Code sessions and tells you when one is waiting on you.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.0.0"
+  }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Code Pet</title>
+  <style>
+    /* Pixel display font with graceful offline fallback */
+    @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Nunito:wght@600;800&display=swap');
+  </style>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <div id="drag-strip"></div>
+  <header>
+    <div class="crt-line"></div>
+    <h1>CODE&nbsp;PET</h1>
+    <div id="totals"><span id="total-xp">0</span> XP · <span id="total-msgs">0</span> msgs</div>
+  </header>
+
+  <main>
+    <section id="sec-sessions">
+      <h2>▸ Sessions</h2>
+      <div id="sessions" class="list"></div>
+    </section>
+
+    <section id="sec-eggs">
+      <h2>▸ Eggs</h2>
+      <div id="eggs" class="cards"></div>
+    </section>
+
+    <section id="sec-pets">
+      <h2>▸ Your Pets</h2>
+      <div id="pets" class="cards"></div>
+    </section>
+
+    <section id="sec-achievements">
+      <h2>▸ Achievements</h2>
+      <div id="achievements" class="ach-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>evolve at Lv.5 &amp; Lv.12 · XP flows from your Claude Code sessions</span>
+    <button id="btn-quit">quit app</button>
+  </footer>
+
+  <script src="sprites.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

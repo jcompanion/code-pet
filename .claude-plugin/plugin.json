@@ -1,0 +1,6 @@
+{
+  "name": "code-pet",
+  "description": "A hatchable desktop pet that watches your local Claude Code sessions, bounces when one is waiting on you, and levels up as you code.",
+  "version": "0.1.0",
+  "author": { "name": "Josh Companion" }
+}

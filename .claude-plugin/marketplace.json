@@ -1,0 +1,11 @@
+{
+  "name": "code-pet",
+  "owner": { "name": "Josh Companion" },
+  "plugins": [
+    {
+      "name": "code-pet",
+      "source": "./",
+      "description": "A hatchable desktop pet that watches your local Claude Code sessions, bounces when one is waiting on you, and levels up as you code."
+    }
+  ]
+}

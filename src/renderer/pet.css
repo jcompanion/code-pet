@@ -125,7 +125,7 @@ html, body {
   line-height: 1;
   cursor: grab;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
-  animation: bob 3.2s ease-in-out infinite;
+  animation: bob 4.6s ease-in-out infinite;
 }
 #pet svg { width: 100%; height: 100%; display: block; }
 #pet:active { cursor: grabbing; }
@@ -141,29 +141,31 @@ html, body {
   border-radius: 50%;
   filter: blur(3px);
   z-index: 1;
-  animation: shadow-bob 3.2s ease-in-out infinite;
+  animation: shadow-bob 4.6s ease-in-out infinite;
 }
 
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5cqh); }
+  50% { transform: translateY(-2cqh); }
 }
 @keyframes shadow-bob {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.30; }
-  50% { transform: translateX(-50%) scale(0.82); opacity: 0.18; }
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.28; }
+  50% { transform: translateX(-50%) scale(0.93); opacity: 0.22; }
 }
 
-/* moods */
-#pet.working { animation: work-bounce 0.55s ease-in-out infinite; }
-@keyframes work-bounce {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-3cqh) rotate(2deg); }
+/* moods — kept deliberately subtle; the badge + status dot carry the signal */
+#pet.working { animation: work-sway 2.6s ease-in-out infinite; }
+@keyframes work-sway {
+  0%, 100% { transform: translateY(0) rotate(-0.8deg); }
+  50% { transform: translateY(-1.5cqh) rotate(0.8deg); }
 }
-#pet.waiting { animation: excited-hop 0.6s cubic-bezier(0.3, 0, 0.4, 1) infinite; }
-@keyframes excited-hop {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  30% { transform: translateY(-14cqh) scaleY(1.06); }
-  60% { transform: translateY(0) scaleY(0.92); }
+/* One small double-nudge, then rest for most of the cycle. */
+#pet.waiting { animation: wait-nudge 3.4s ease-in-out infinite; }
+@keyframes wait-nudge {
+  0%, 18%, 100% { transform: translateY(0); }
+  5% { transform: translateY(-3.5cqh); }
+  10% { transform: translateY(0); }
+  14% { transform: translateY(-2cqh); }
 }
 #pet.sleeping {
   animation: breathe 4.5s ease-in-out infinite;
@@ -173,14 +175,13 @@ html, body {
   0%, 100% { transform: scale(1, 1); }
   50% { transform: scale(1.04, 0.95); }
 }
-#pet.egg-idle { animation: bob 4s ease-in-out infinite; }
-#pet.egg-ready { animation: wobble 0.9s ease-in-out infinite; cursor: pointer; }
+#pet.egg-idle { animation: bob 5s ease-in-out infinite; }
+#pet.egg-ready { animation: wobble 2.4s ease-in-out infinite; cursor: pointer; }
 @keyframes wobble {
-  0%, 100% { transform: rotate(0); }
-  20% { transform: rotate(-9deg); }
-  40% { transform: rotate(7deg); }
-  60% { transform: rotate(-5deg); }
-  80% { transform: rotate(3deg); }
+  0%, 32%, 100% { transform: rotate(0); }
+  8% { transform: rotate(-5deg); }
+  16% { transform: rotate(4deg); }
+  24% { transform: rotate(-2deg); }
 }
 #pet.pounce { animation: pounce 0.45s ease-out; }
 @keyframes pounce {
@@ -198,10 +199,10 @@ html, body {
   z-index: 3;
   filter: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.4));
 }
-#badge.pulse { animation: badge-pulse 0.7s ease-in-out infinite; }
+#badge.pulse { animation: badge-pulse 1.8s ease-in-out infinite; }
 @keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.35); }
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.12); opacity: 1; }
 }
 #badge.drift { animation: drift 2.6s ease-in-out infinite; }
 @keyframes drift {
